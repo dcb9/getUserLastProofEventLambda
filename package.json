@@ -16,11 +16,14 @@
     "typescript": "^2.7.1"
   },
   "dependencies": {
-    "@keymesh/trustmesh": "^0.0.4",
+    "@keymesh/trustmesh": "^0.0.8",
     "@types/chai": "^4.1.2",
     "@types/mocha": "^2.2.48",
+    "bs58check": "^2.1.1",
     "chai": "^4.1.2",
     "ed2curve": "^0.2.1",
+    "es6-promise": "^4.2.4",
+    "isomorphic-fetch": "^2.2.1",
     "mocha": "^5.0.0",
     "web3": "1.0.0-beta.30",
     "wire-webapp-proteus": "^5.2.0"

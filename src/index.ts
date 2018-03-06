@@ -5,25 +5,80 @@ import {
 
 import Web3Type from 'web3'
 const Web3: Web3Type = require('web3')
-
-import proteus = require('wire-webapp-proteus')
 const ed2curve = require('ed2curve')
 
-// const web3: Web3Type = new (Web3 as any)('https://rinkeby.infura.io')
-const web3: Web3Type = new (Web3 as any)('http://localhost:8545')
+import proteus = require('wire-webapp-proteus')
+import { IProofEvent } from '../../trustmesh/lib/SocialProofs'
+import { keys } from 'wire-webapp-proteus'
+import { twitterResource } from './resources/twitterResource'
+import ENV from './config'
+import { claimTextToSignedClaim } from './utils'
 
-export async function main() {
+const web3: Web3Type = new (Web3 as any)(ENV.WEB3_URL)
+
+console.log('web3_url', ENV.WEB3_URL)
+
+export async function getSocialProof(userAddress: string, platform: PLATFORMS) {
+  console.log('userAddress', userAddress)
+
   const contracts = await getContracts(web3)
-  const identity = await contracts.identities.getIdentity('0x71E51Ad59b0C1F628d65C051Bc0bB5676dD8f88D')
+  const identity = await contracts.identities.getIdentity(userAddress)
+  console.log(identity)
 
-  // change broadcastMessages to ProofContract.ProofEvent
-  const messages = await contracts.broadcastMessages.getBroadcastMessages()
-  const signedMessage = JSON.parse(web3.utils.hexToString(messages.result[0].signedMessage))
+  const proofEvents = await contracts.socialProofs.ProofEvent({
+    filter: {
+      userAddress,
+      platformName: web3.utils.stringToHex(platform),
+    },
+    fromBlock: 0,
+  })
 
+  console.log(identity.publicKey)
+  console.log(proofEvents)
   const publicKey = generatePublicKeyFromHexStr(identity.publicKey)
-  console.log(signedMessage)
+  const signedSocialProof = getLastProof(publicKey, proofEvents.result)
+  if (signedSocialProof === null) {
+    throw new Error('social proof could not found')
+  }
 
-  console.log(publicKey.verify(uint8ArrayFromHex(signedMessage.signature), signedMessage.message))
+  const isValid = await verify(publicKey, platform, signedSocialProof.socialProof.proofURL)
+  if (!isValid) {
+    throw new Error('the claim is invalid')
+  }
+
+  return signedSocialProof.socialProof
+}
+
+async function verify(publicKey: keys.PublicKey, platform: PLATFORMS, proofURL: string) {
+    const claimText = await getClaimTextFunctions[platform](proofURL)
+    if (claimText === null) {
+      throw new Error('Claim text not found')
+    }
+
+    console.log(claimText)
+    const signedClaim = claimTextToSignedClaim(claimText)
+    console.log(signedClaim)
+    return publicKey.verify(
+      uint8ArrayFromHex(signedClaim.signature),
+      signedClaim.userAddress,
+    )
+}
+
+function getLastProof(publicKey: keys.PublicKey, proofEvents: IProofEvent[]): any | null {
+  for (let i = proofEvents.length - 1; i >= 0; i--) {
+    const proofEvent = proofEvents[i]
+    const signedSocialProof = JSON.parse(web3.utils.hexToString(proofEvent.data))
+    if (!publicKey.verify(
+      uint8ArrayFromHex(signedSocialProof.signature),
+      JSON.stringify(signedSocialProof.socialProof),
+    )) {
+      continue
+    }
+
+    return signedSocialProof
+  }
+
+  return null
 }
 
 function generatePublicKeyFromHexStr(publicKeyHexString: string) {
@@ -38,3 +93,17 @@ function generatePublicKeyFromHexStr(publicKeyHexString: string) {
 function uint8ArrayFromHex(hex: string): Uint8Array {
   return new Uint8Array(web3.utils.hexToBytes(hex))
 }
+
+export enum PLATFORMS {
+  GITHUB = 'github',
+  TWITTER = 'twitter',
+  FACEBOOK = 'facebook',
+}
+
+const getClaimTextFunctions = {
+  [PLATFORMS.FACEBOOK]: (proofURL: string) => 'need imply',
+  [PLATFORMS.TWITTER]: (proofURL: string) => twitterResource.getTweet(proofURL),
+  [PLATFORMS.GITHUB]: (proofURL: string) => 'need imply',
+}
+
+export const toChecksumAddress = web3.utils.toChecksumAddress
