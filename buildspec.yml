@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+
+  install:
+    commands:
+      - sudo apt-get update && sudo apt-get install apt-transport-https
+      - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+      - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+      - sudo apt-get update && sudo apt-get install yarn
+
+  pre_build:
+    commands:
+      - yarn --ignore-engines
+
+  build:
+    commands:
+      - yarn package
+      - aws s3 cp ./getUserLastSocialProof.zip s3://${S3_BUCKET_NAME}/ --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers

@@ -4,13 +4,19 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc -w",
-    "test": "mocha lib/**/*_test.js"
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "mocha lib/**/*_test.js",
+    "package": "yarn build && yarn cp:trustmesh && yarn gzipfiles",
+    "gzipfiles": " zip -r ./getUserLastSocialProof.zip ./main.js ./lib/ ./node_modules/",
+    "removeoldgzip": "rm -rf ./getUserLastSocialProof.zip 2> /dev/null",
+    "cp:trustmesh": "cp -r node_modules/@keymesh/trustmesh/package.json node_modules/@keymesh/trustmesh/build lib/node_modules/@keymesh/trustmesh"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/aws-lambda": "^0.0.33",
     "@types/node": "^9.4.6",
     "tslint": "^5.9.1",
     "typescript": "^2.7.1"

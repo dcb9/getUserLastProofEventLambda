@@ -3,14 +3,16 @@ import {
   ITrustMeshContracts,
 } from '@keymesh/trustmesh'
 
+import { Handler, Context, Callback } from 'aws-lambda'
+
 import Web3Type from 'web3'
 const Web3: Web3Type = require('web3')
 const ed2curve = require('ed2curve')
 
 import proteus = require('wire-webapp-proteus')
-import { IProofEvent } from '../../trustmesh/lib/SocialProofs'
+import { IProofEvent } from '@keymesh/trustmesh/lib/SocialProofs'
 import { keys } from 'wire-webapp-proteus'
-import { twitterResource } from './resources/twitterResource'
+import { twitterResource } from './resources/TwitterResource'
 import ENV from './config'
 import { claimTextToSignedClaim } from './utils'
 
@@ -18,7 +20,7 @@ const web3: Web3Type = new (Web3 as any)(ENV.WEB3_URL)
 
 console.log('web3_url', ENV.WEB3_URL)
 
-export async function getSocialProof(userAddress: string, platform: PLATFORMS) {
+async function getValidSocialProof(userAddress: string, platform: PLATFORMS) {
   console.log('userAddress', userAddress)
 
   const contracts = await getContracts(web3)
@@ -94,7 +96,7 @@ function uint8ArrayFromHex(hex: string): Uint8Array {
   return new Uint8Array(web3.utils.hexToBytes(hex))
 }
 
-export enum PLATFORMS {
+enum PLATFORMS {
   GITHUB = 'github',
   TWITTER = 'twitter',
   FACEBOOK = 'facebook',
@@ -107,3 +109,15 @@ const getClaimTextFunctions = {
 }
 
 export const toChecksumAddress = web3.utils.toChecksumAddress
+
+const getUserLastProofEvent: Handler = async (event: any, context: Context, callback: Callback) => {
+  try {
+    console.log(event)
+    const socialProof = await getValidSocialProof(event.userAddress, event.platform)
+    callback(undefined, socialProof)
+  } catch (e) {
+    callback(e)
+  }
+}
+
+export { getUserLastProofEvent }
