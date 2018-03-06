@@ -43,6 +43,7 @@ async function getValidSocialProof(userAddress: string, platform: PLATFORMS) {
     throw new Error('social proof could not found')
   }
 
+  console.log(signedSocialProof.socialProof)
   const isValid = await verify(publicKey, platform, signedSocialProof.socialProof.proofURL)
   if (!isValid) {
     throw new Error('the claim is invalid')

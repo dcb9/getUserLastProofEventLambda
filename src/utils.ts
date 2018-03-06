@@ -1,3 +1,4 @@
+import ENV from './config'
 import {
     encode as base58Encode,
     decode as base58Decode,
@@ -13,7 +14,7 @@ export function base58ToChecksumAddress(encodedAddress: string): string {
 }
 
 export function claimTextToSignedClaim(claimText: string) {
-  const parts = new RegExp(`http://localhost:1234/profile/(\\w+)\\s+Signature:\\s+(\\w+)`).exec(claimText)
+  const parts = new RegExp(`${ENV.DEPLOYED_ADDRESS}/profile/(\\w+)\\s+Signature:\\s+(\\w+)`).exec(claimText)
   if (parts === null) {
     throw new Error('Invalid claim text')
   }
