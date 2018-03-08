@@ -14,9 +14,10 @@ export function base58ToChecksumAddress(encodedAddress: string): string {
 }
 
 export function claimTextToSignedClaim(claimText: string) {
-  const parts = new RegExp(`${ENV.DEPLOYED_ADDRESS}/profile/(\\w+)\\s+Signature:\\s+(\\w+)`).exec(claimText)
+  const regStr = `${ENV.DEPLOYED_ADDRESS}/profile/(\\w+)\\s+Signature:\\s+(\\w+)`
+  const parts = new RegExp(regStr).exec(claimText)
   if (parts === null) {
-    throw new Error('Invalid claim text')
+    throw new Error('Invalid claim text, regStr: ' + regStr)
   }
   return {
     userAddress: base58ToChecksumAddress(parts[1]),

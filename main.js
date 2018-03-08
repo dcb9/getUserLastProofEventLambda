@@ -1,3 +1,5 @@
-const { getUserLastProofEvent } = require('./lib/src/index.js');
+const {
+    getUserLastProofEvent,
+} = require('./lib/src/index.js');
 
-exports.handler = getUserLastProofEvent
+exports.getUserLastProofEvent = getUserLastProofEvent
