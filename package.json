@@ -7,9 +7,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "mocha lib/**/*_test.js",
-    "package": "yarn build && yarn cp:trustmesh && yarn gzipfiles",
+    "package": "yarn build -p ./node6 && yarn cp:trustmesh && yarn gzipfiles",
     "gzipfiles": " zip -r ./getUserLastSocialProof.zip ./main.js ./lib/ ./node_modules/",
-    "removeoldgzip": "rm -rf ./getUserLastSocialProof.zip 2> /dev/null",
     "cp:trustmesh": "cp -r node_modules/@keymesh/trustmesh/package.json node_modules/@keymesh/trustmesh/build lib/node_modules/@keymesh/trustmesh"
   },
   "keywords": [],
